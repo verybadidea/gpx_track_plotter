@@ -1,0 +1,60 @@
+' [S]imple [N]etwork [C]onnection
+
+#include once "snc.bi"
+
+#include once "snc_utility.bi"
+
+' test of a client connection 
+const as string ServerName = "shiny3d.de"
+const as string ServerPath = "/public/"
+const as string ServerFile = "ip.php"
+const as string FileType   = MIME_TXT
+
+' connect to web server at port 80
+dim as NetworkClient client=type(ServerName,80)
+' get a connection from ConnectionFactory
+var connection = client.GetConnection()
+' build an HTTP GET request
+dim as string request = HTTPGet(ServerName,ServerPath & ServerFile,FileType)
+
+' ready to send ?
+while connection->CanPut()<>1
+  sleep 100
+wend
+' put data on the connection
+connection->PutData(strptr(request),len(request))
+' ready to receive ?
+while connection->CanGet()<>1
+  sleep 100
+wend
+print "receive data ..."
+dim as zstring ptr buffer
+var nBytes = connection->GetData(buffer)
+print "number of received bytes " & nBytes
+' get last char position of the HTTP asci header
+var LastChar=instr(*buffer,HeaderEnd)-1
+var Header  =left(*buffer,LastChar)
+' is it a OK answer ?
+if instr(Header,"200 OK")<1 then
+  print "can't get " & ServerName & ServerPath & ServerFile & " !"
+  beep:sleep:end
+end if
+
+' get first byte behind the HTTP asci header
+var DataStart=LastChar+4
+dim as zstring ptr d=@buffer[DataStart]
+var s=instr(*d,"[")+1
+var e=instr(*d,"]")-1
+dim as string IP = mid(*d,s,e-s)
+print "your IP: " & IP
+open "ip.txt" for output as #1
+  print #1,IP & LineEnd
+close #1
+print "file saved ..."
+' free the buffer (allocate by snc.bi)
+deallocate buffer
+sleep
+
+
+
+

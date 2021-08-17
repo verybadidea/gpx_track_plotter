@@ -1,0 +1,243 @@
+# depslib dependency file v1.0
+1446549040 source:f:\codeblocks\joshy\fbimage-src\fbimage.c
+	"config.h"
+	<windows.h>
+	<wingdi.h>
+	"FBImage.h"
+	"stb_image_aug.h"
+	"image_helper.h"
+	"image_DXT.h"
+	<stdlib.h>
+	<string.h>
+
+1446549138 f:\codeblocks\joshy\fbimage-src\config.h
+
+1446537966 f:\codeblocks\joshy\fbimage-src\fbimage.h
+	"config.h"
+
+1446525594 f:\codeblocks\joshy\fbimage-src\stb_image_aug.h
+	"config.h"
+	<stdio.h>
+
+1446538464 f:\codeblocks\joshy\fbimage-src\image_helper.h
+	"config.h"
+
+1446528198 f:\codeblocks\joshy\fbimage-src\image_dxt.h
+	"config.h"
+
+1446531912 source:f:\codeblocks\joshy\fbimage-src\image_dxt.c
+	"config.h"
+	"image_DXT.h"
+	<math.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+
+1446526046 source:f:\codeblocks\joshy\fbimage-src\image_helper.c
+	"config.h"
+	"image_helper.h"
+	<stdlib.h>
+	<math.h>
+
+1446534214 source:f:\codeblocks\joshy\fbimage-src\stb_image_aug.c
+	"config.h"
+	"stb_image_aug.h"
+	<math.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<memory.h>
+	<assert.h>
+	<stdarg.h>
+	"stbi_DDS_aug.h"
+	"stbi_DDS_aug_c.h"
+
+1446529954 f:\codeblocks\joshy\fbimage-src\stbi_dds_aug.h
+	"config.h"
+
+1446525594 f:\codeblocks\joshy\fbimage-src\stbi_dds_aug_c.h
+	"config.h"
+
+1446531912 source:g:\laufwerkd\codeblocks\joshy\fbimage-src\image_dxt.c
+	"config.h"
+	"image_DXT.h"
+	<math.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+
+1446549138 g:\laufwerkd\codeblocks\joshy\fbimage-src\config.h
+
+1446528198 g:\laufwerkd\codeblocks\joshy\fbimage-src\image_dxt.h
+	"config.h"
+
+1446526046 source:g:\laufwerkd\codeblocks\joshy\fbimage-src\image_helper.c
+	"config.h"
+	"image_helper.h"
+	<stdlib.h>
+	<math.h>
+
+1446538464 g:\laufwerkd\codeblocks\joshy\fbimage-src\image_helper.h
+	"config.h"
+
+1446534214 source:g:\laufwerkd\codeblocks\joshy\fbimage-src\stb_image_aug.c
+	"config.h"
+	"stb_image_aug.h"
+	<math.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<memory.h>
+	<assert.h>
+	<stdarg.h>
+	"stbi_DDS_aug.h"
+	"stbi_DDS_aug_c.h"
+
+1446525594 g:\laufwerkd\codeblocks\joshy\fbimage-src\stb_image_aug.h
+	"config.h"
+	<stdio.h>
+
+1446529954 g:\laufwerkd\codeblocks\joshy\fbimage-src\stbi_dds_aug.h
+	"config.h"
+
+1446525594 g:\laufwerkd\codeblocks\joshy\fbimage-src\stbi_dds_aug_c.h
+	"config.h"
+
+1474761413 source:d:\codeblocks\joshy\fbimage-src\fbimage.c
+	"config.h"
+	<windows.h>
+	<wingdi.h>
+	"FBImage.h"
+	"stb_image_aug.h"
+	"image_helper.h"
+	"image_DXT.h"
+	"stb_image_write.h"
+	<stdint.h>
+	<stdlib.h>
+	<string.h>
+
+1446552738 d:\codeblocks\joshy\fbimage-src\config.h
+
+1474759671 d:\codeblocks\joshy\fbimage-src\fbimage.h
+	"config.h"
+
+1446529194 d:\codeblocks\joshy\fbimage-src\stb_image_aug.h
+	"config.h"
+	<stdio.h>
+
+1446542064 d:\codeblocks\joshy\fbimage-src\image_helper.h
+	"config.h"
+
+1446531798 d:\codeblocks\joshy\fbimage-src\image_dxt.h
+	"config.h"
+
+1446535512 source:d:\codeblocks\joshy\fbimage-src\image_dxt.c
+	"config.h"
+	"image_DXT.h"
+	<math.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+
+1446529646 source:d:\codeblocks\joshy\fbimage-src\image_helper.c
+	"config.h"
+	"image_helper.h"
+	<stdlib.h>
+	<math.h>
+
+1474759021 source:d:\codeblocks\joshy\fbimage-src\stb_image_aug.c
+	"config.h"
+	"stb_image_aug.h"
+	<math.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<memory.h>
+	<assert.h>
+	<stdarg.h>
+	"stbi_DDS_aug.h"
+	"stbi_DDS_aug_c.h"
+
+1446533554 d:\codeblocks\joshy\fbimage-src\stbi_dds_aug.h
+	"config.h"
+
+1446529194 d:\codeblocks\joshy\fbimage-src\stbi_dds_aug_c.h
+	"config.h"
+
+1446535512 source:d:\codeblocks\joshy\fbtinygl\fbimage-src\image_dxt.c
+	"config.h"
+	"image_DXT.h"
+	<math.h>
+	<stdlib.h>
+	<string.h>
+	<stdio.h>
+
+1446552738 d:\codeblocks\joshy\fbtinygl\fbimage-src\config.h
+
+1446531798 d:\codeblocks\joshy\fbtinygl\fbimage-src\image_dxt.h
+	"config.h"
+
+1446529646 source:d:\codeblocks\joshy\fbtinygl\fbimage-src\image_helper.c
+	"config.h"
+	"image_helper.h"
+	<stdlib.h>
+	<math.h>
+
+1446542064 d:\codeblocks\joshy\fbtinygl\fbimage-src\image_helper.h
+	"config.h"
+
+1446537814 source:d:\codeblocks\joshy\fbtinygl\fbimage-src\stb_image_aug.c
+	"config.h"
+	"stb_image_aug.h"
+	<math.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<memory.h>
+	<assert.h>
+	<stdarg.h>
+	"stbi_DDS_aug.h"
+	"stbi_DDS_aug_c.h"
+
+1446529194 d:\codeblocks\joshy\fbtinygl\fbimage-src\stb_image_aug.h
+	"config.h"
+	<stdio.h>
+
+1446533554 d:\codeblocks\joshy\fbtinygl\fbimage-src\stbi_dds_aug.h
+	"config.h"
+
+1446529194 d:\codeblocks\joshy\fbtinygl\fbimage-src\stbi_dds_aug_c.h
+	"config.h"
+
+1474751970 source:d:\codeblocks\joshy\fbtinygl\fbimage-src\fbimage.c
+	"config.h"
+	<windows.h>
+	<wingdi.h>
+	"FBImage.h"
+	"stb_image_aug.h"
+	"image_helper.h"
+	"image_DXT.h"
+	"stb_image_write.h"
+	<stdint.h>
+	<stdlib.h>
+	<string.h>
+
+1474753346 d:\codeblocks\joshy\fbtinygl\fbimage-src\fbimage.h
+	"config.h"
+
+1474753380 d:\codeblocks\joshy\fbtinygl\fbimage-src\stb_image_write.h
+	<stdio.h>
+	<stdarg.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<assert.h>
+
+1474757959 d:\codeblocks\joshy\fbimage-src\stb_image_write.h
+	<stdio.h>
+	<stdarg.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	<assert.h>
+

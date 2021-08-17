@@ -1,0 +1,26 @@
+<html>
+<head>
+<title>FBImage build log</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
+<body>
+<tt>
+Build started on: <u>25-09-2016 at 02:13.46</u><br />
+Build ended on: <u>25-09-2016 at 02:13.51</u><p />
+<b>-------------- Build: w32_static in FBImage (compiler: GNU GCC Compiler)---------------</b><br />
+gcc.exe -O2 -Wall -DNDEBUG -DSTB_IMAGE_WRITE_IMPLEMENTATION -m32 -DSTB_IMAGE_WRITE_STATIC  -ID:\CodeBlocks\joshy\FBImage-src -c D:\CodeBlocks\joshy\FBImage-src\FBImage.c -o obj\w32-static\FBImage.o<br />
+gcc.exe -O2 -Wall -DNDEBUG -DSTB_IMAGE_WRITE_IMPLEMENTATION -m32 -DSTB_IMAGE_WRITE_STATIC  -ID:\CodeBlocks\joshy\FBImage-src -c D:\CodeBlocks\joshy\FBImage-src\image_DXT.c -o obj\w32-static\image_DXT.o<br />
+gcc.exe -O2 -Wall -DNDEBUG -DSTB_IMAGE_WRITE_IMPLEMENTATION -m32 -DSTB_IMAGE_WRITE_STATIC  -ID:\CodeBlocks\joshy\FBImage-src -c D:\CodeBlocks\joshy\FBImage-src\image_helper.c -o obj\w32-static\image_helper.o<br />
+gcc.exe -O2 -Wall -DNDEBUG -DSTB_IMAGE_WRITE_IMPLEMENTATION -m32 -DSTB_IMAGE_WRITE_STATIC  -ID:\CodeBlocks\joshy\FBImage-src -c D:\CodeBlocks\joshy\FBImage-src\stb_image_aug.c -o obj\w32-static\stb_image_aug.o<br />
+D:\CodeBlocks\joshy\FBImage-src\stb_image_aug.c: In function 'parse_png_file':<br />
+<font color="#0000ff">D:\CodeBlocks\joshy\FBImage-src\stb_image_aug.c:2375:28: warning: variable 'invalid_chunk' set but not used [-Wunused-but-set-variable]</font><br />
+                static char invalid_chunk[] = "XXXX chunk not known";<br />
+                            ^<br />
+cmd /c if exist ..\FBImage\lib\win\libFBImage-32-static.a del ..\FBImage\lib\win\libFBImage-32-static.a
+ar.exe -r -s ..\FBImage\lib\win\libFBImage-32-static.a obj\w32-static\FBImage.o obj\w32-static\image_DXT.o obj\w32-static\image_helper.o obj\w32-static\stb_image_aug.o<br />
+ar.exe: creating ..\FBImage\lib\win\libFBImage-32-static.a<br />
+Output file is ..\FBImage\lib\win\libFBImage-32-static.a with size 57.35 KB<br />
+<font color="#0000ff">Process terminated with status 0 (0 minute(s), 5 second(s))</font><br />
+<font color="#0000ff">0 error(s), 1 warning(s) (0 minute(s), 5 second(s))</font><br />
+</tt>
+</body>
+</html>

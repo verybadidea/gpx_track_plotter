@@ -1,0 +1,25 @@
+function getNodeTypeDescrStr(nodeType as integer) as string
+	select case nodeType
+	case 01 : return "XML_ELEMENT_NODE"
+	case 02 : return "XML_ATTRIBUTE_NODE"
+	case 03 : return "XML_TEXT_NODE"
+	case 04 : return "XML_CDATA_SECTION_NODE"
+	case 05 : return "XML_ENTITY_REF_NODE"
+	case 06 : return "XML_ENTITY_NODE"
+	case 07 : return "XML_PI_NODE"
+	case 08 : return "XML_COMMENT_NODE"
+	case 09 : return "XML_DOCUMENT_NODE"
+	case 10 : return "XML_DOCUMENT_TYPE_NODE"
+	case 11 : return "XML_DOCUMENT_FRAG_NODE"
+	case 12 : return "XML_NOTATION_NODE"
+	case 13 : return "XML_HTML_DOCUMENT_NODE"
+	case 14 : return "XML_DTD_NODE"
+	case 15 : return "XML_ELEMENT_DECL"
+	case 16 : return "XML_ATTRIBUTE_DECL"
+	case 17 : return "XML_ENTITY_DECL"
+	case 18 : return "XML_NAMESPACE_DECL"
+	case 19 : return "XML_XINCLUDE_START"
+	case 20 : return "XML_XINCLUDE_END"
+	end select
+	return "XML_MODE_???"
+end function

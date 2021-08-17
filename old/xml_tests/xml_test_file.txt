@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RootNode AnAttribute="AttributeValue" xmlns:foo="Some namespace">
+ <ChildNode Attr1="1" Attr2="2" Attr3="3"/>
+ <bar:Item xmlns:bar="LocalBar"/>
+ <AttributeNamespace foo:MyAttribute="10"/>
+ <![CDATA[some stuff]]>
+ <!-- My comment -->
+ <Element>Text</Element>
+ <?do homework?>
+ <ChildNode>
+  <GrandchildNode Depth="3"/>
+ </ChildNode>
+</RootNode>
