@@ -33,7 +33,7 @@ dim as integer mouseEvent, mouseDrag
 dim as mouse_type mouse
 
 dim as file_list fileList
-fileList.create("gpx_files/Utrecht/", "*.gpx")
+fileList.create("gpx_files/", "*.gpx")
 numTracks = fileList.size()
 print "Number of files: " & str(numTracks)
 redim track(numTracks-1)
