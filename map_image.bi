@@ -25,6 +25,7 @@ function getMapImage(lon as double, lat as double, zoom as integer,_
 	dim as fb.image ptr pImg
 	'connect to web server at port 80
 	dim as NetworkClient client = type(ServerName, 80)
+	if client.GetLastError() <> 0 then return 0
 	'get a connection from ConnectionFactory
 	var connection = client.GetConnection()
 	'build an HTTP GET request
@@ -44,7 +45,7 @@ function getMapImage(lon as double, lat as double, zoom as integer,_
 	var Header = left(*replyBuffer, LastChar)
 	'is it a OK answer ?
 	if instr(Header, "200 OK") < 1 then
-		print "can't get " & ServerName & ServerPath & ServerFile & " !"
+		'print "can't get " & ServerName & ServerPath & ServerFile & " !"
 	else
 		'get first byte behind the HTTP asci header
 		var DataStart = LastChar + 4

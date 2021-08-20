@@ -108,13 +108,13 @@ dim as scaled_graphics_type sg
 sg.setScreen(SW, SH)
 width SW \ 8, SH \ 16
 
-print "Fetching image...", zoomLevel
+print "Fetching image..."
 'styles: atlas, landscape, outdoors, neighbourhood
 dim as fb.image ptr pImg = getMapImage(ptRef.Lon, ptRef.Lat, zoomLevel, "atlas", SW, SH)
 if pImg <> 0 then
 	'put (0,0), pImg, pset
 else
-	print "image error"
+	print "Error getting image from Thunderforrest"
 	getkey()
 	end -1
 end if
@@ -203,6 +203,7 @@ wend
 ImageDestroy(pImg)
 
 'TODO:
+' data type for geoPos (lon, lat, ele)
 ' move center with mouse
 ' key to read map at new zoom and position, limit max zoom
 ' calculate total height difference
