@@ -6,7 +6,6 @@
 '- Thunderforrest (https://www.thunderforest.com/)
 
 #include "inc/dbl3d.bi"
-#include "inc/sgl2d_v03.bi"
 #include "inc/mouse.bi"
 #include "inc/scaledgr_dbl_v01.bi"
 #include "inc/trkpt.bi"
@@ -55,9 +54,17 @@ for i as integer = 0 to numTracks - 1
 		end -1
 	end if
 	track(i).calculate() 'derived data and stats
+	track(i).filter()
+	track(i).calculate()
+	dim as integer activity = quessActivity(track(i).avgSpeed, track(i).totalDist)
+	print "Activity (quess): " & activityString(activity)
+	if track(i).maxSpeed > activityMaxSpeed(activity) then
+		print "vMax exceeded: " & activityMaxSpeed(activity) * 3.6
+	end if
 	'more debug info
 	track(i).printStats()
 	track(i).printFirstLast()
+	'track(i).saveTrackTsv("trackdump2.tsv")
 	print
 next
 print "====================================="
@@ -65,7 +72,6 @@ allStats.create(track())
 'allStats.maxSpeed = 40 / 3.6 'limit to 40 km/h
 allStats.print_()
 print "Number of files: " & str(numTracks)
-'track.saveTrackTsv("trackdump.tsv")
 
 dim as trkpt_type ptRef
 ptRef.Lon = AVG(allStats.minLon, allStats.maxLon)
@@ -92,8 +98,9 @@ for i as integer = 0 to numTracks - 1
 	track(i).calculateCart(ptRef)
 next
 
-print : print "Press a key to continue..."
-getkey()
+print : print "Press a key to continue. <Escape> to quit."
+dim as long keyCode = getkey()
+if keyCode = 27 then end
 'sleep 1000
 
 'switch to graphics screen
@@ -121,10 +128,10 @@ while inkey <> chr(27)
 	'zoom / drag view by mouse
 	mouseEvent = handleMouse(mouse)
 	if (mouse.buttons <> -1) then
-		'if (mouseEvent = MOUSE_LB_PRESSED) then mouseDrag = 1
-		'if (mouseEvent = MOUSE_LB_RELEASED) then mouseDrag = 0
-		'if (mouseEvent = MOUSE_WHEEl_UP) then sg.scale *= 1.05
-		'if (mouseEvent = MOUSE_WHEEl_DOWN) then sg.scale /= 1.05
+		if (mouseEvent = MOUSE_LB_PRESSED) then mouseDrag = 1
+		if (mouseEvent = MOUSE_LB_RELEASED) then mouseDrag = 0
+		if (mouseEvent = MOUSE_WHEEl_UP) then sg.scale *= 2
+		if (mouseEvent = MOUSE_WHEEl_DOWN) then sg.scale /= 2
 	end if
 	if (mouseDrag) then
 		sg.offset.x -= (mouse.posChange.x / sg.scale)
@@ -196,8 +203,9 @@ wend
 ImageDestroy(pImg)
 
 'TODO:
-' categorise on average speed walking (3...7 km/h), running (7...15), cycling(15...35), other
-' filter data on max speed walking: 10, running: 20, cycling: 50
+' move center with mouse
+' key to read map at new zoom and position, limit max zoom
+' calculate total height difference
 ' optional fiter on too large elevation change (not for skiing)
 ' max & avg speed from <extentions>
 ' save gpx file

@@ -91,12 +91,12 @@ end operator
 	'~ return type(a.x * b.x, a.y * b.y)
 '~ end operator
 
-'~ ' a * mul
-'~ operator * (a as dbl3d, mul as double) as dbl3d
-	'~ return type(a.x * mul, a.y * mul)
-'~ end operator
+' a * mul
+operator * (a as dbl3d, mul as double) as dbl3d
+	return type(a.x * mul, a.y * mul, a.z * mul)
+end operator
 
-'~ ' a / div
-'~ operator / (a as dbl3d, div_ as double) as dbl3d
-	'~ return type(a.x / div_, a.y / div_)
-'~ end operator
+' a / div
+operator / (a as dbl3d, div_ as double) as dbl3d
+	return type(a.x / div_, a.y / div_, a.z / div_,)
+end operator
