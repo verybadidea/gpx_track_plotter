@@ -5,20 +5,14 @@
 '- FBImage (https://www.freebasic.net/forum/viewtopic.php?t=24105)
 '- Thunderforrest (https://www.thunderforest.com/)
 
+#include "inc/macro.bi"
+#include "inc/math.bi"
 #include "inc/dbl3d.bi"
 #include "inc/mouse.bi"
 #include "inc/scaledgr_dbl_v01.bi"
 #include "inc/trkpt.bi"
 #include "inc/all_stats.bi"
 #include "inc/file_list.bi"
-
-function log10(value as double) as double
-	return log(value) / log(10)
-end function
-
-function cos360(value as double) as double
-	return cos(value * (PI / 180))
-end function
 
 '-------------------------------------------------------------------------------
 
@@ -124,7 +118,8 @@ dim as dbl2d p0, p1
 dim as ulong c
 dim as string key
 dim as single scale = SW / mapWidth '[1/m]
-sg.setScaling(scale, dbl2d(0, 0))
+dim as dbl2d centerPos = dbl2d(0, 0)
+sg.setScaling(scale, centerPos)
 while key <> chr(27) 'escape
 	key = inkey()
 	'zoom / drag view by mouse
@@ -132,8 +127,12 @@ while key <> chr(27) 'escape
 	if (mouse.buttons <> -1) then
 		if (mouseEvent = MOUSE_LB_PRESSED) then mouseDrag = 1
 		if (mouseEvent = MOUSE_LB_RELEASED) then mouseDrag = 0
-		if (mouseEvent = MOUSE_WHEEl_UP) then sg.scale *= 2 : zoomLevel += 1
-		if (mouseEvent = MOUSE_WHEEl_DOWN) then sg.scale /= 2 : zoomLevel -= 1
+		if (mouseEvent = MOUSE_WHEEl_UP) then
+			if zoomLevel < 20 then sg.scale *= 2 : zoomLevel += 1
+		end if
+		if (mouseEvent = MOUSE_WHEEl_DOWN) then
+			if zoomLevel > 2 then sg.scale /= 2 : zoomLevel -= 1
+		end if
 	end if
 	if (mouseDrag) then
 		sg.offset.x -= (mouse.posChange.x / sg.scale)
@@ -141,9 +140,19 @@ while key <> chr(27) 'escape
 	end if
 	if key = chr(32) then 'space
 		'read map from Thunderforrest at new zoomlevel and position
-		'...
-		'...
-		'...
+		locate 1,1 : print "Fetching new image..."
+		ImageDestroy(pImg) : pImg = 0
+		dim as dbl2d shift = centerPos - sg.offset
+		dim as dbl3d dPos = type(shift.x, shift.y, 0)
+		centerPos = sg.offset
+		refPos = moveGeoPos(refPos, dPos)
+		pImg = getMapImage(refPos.Lon, refPos.Lat, zoomLevel, "atlas", SW, SH)
+		if pImg = 0 then
+			print "Error getting image from Thunderforrest"
+			exit while 'abort
+		end if
+		pixelWidth = earthc * cos360(refPos.Lat) / (2 ^ (zoomLevel + 8))
+		mapWidth = pixelWidth * SW
 	end if
 	'find track point closest to mouse
 	dim as dbl2d mousePosMap = sg.screen2pos(mouse.pos)
@@ -159,10 +168,15 @@ while key <> chr(27) 'escape
 	'sg.clearScreen(0)
 	put (0,0), pImg, pset
 	'~ draw string(0, 0), "FileName: " & fileName
-	'draw string(8, 8), "Mouse: zoom + pan view", rgba(0,0,0,192)
+	draw string(8, 8), "Mouse: zoom + pan view", rgba(127,0,0,255)
 	'draw string(8, 8), "Mouse pos [m]: " & cint(mousePosMap.x) & ", " & cint(mousePosMap.y), rgba(127,0,0,255)
-	draw string(8, 8), "Mouse pos [km]: " & format(mousePosMap.x / 1000, "0.00") _
+	draw string(8, 24), "Mouse pos [km]: " & format(mousePosMap.x / 1000, "0.00") _
 		& ", " & format(mousePosMap.y / 1000, "0.00"), rgba(127,0,0,255)
+	'~ draw string(8, 24), "Center Pos [km]: " & format(sg.offset.x / 1000, "0.00") _
+		'~ & ", " & format(sg.offset.y / 1000, "0.00"), rgba(127,0,0,255)
+	draw string(8, 40), "Press <space> to read map image", rgba(127,0,0,255)
+	draw string(8, 56), "Zoomlevel: " & zoomLevel, rgba(127,0,0,255)
+
 	'~ draw string(0, 48), "Index: " & iNearMouse
 	'~ draw string(0, 65), "Speed [km/h]: " & format(track.pt(iNearMouse).speed * 3.6, "#.000")
 	'draw tracks
@@ -216,7 +230,7 @@ wend
 ImageDestroy(pImg)
 
 'TODO:
-' key to read map at new zoom and position, limit max zoom
+' error with zoom & shift
 ' max & avg speed from <extentions>
 ' save gpx file
 

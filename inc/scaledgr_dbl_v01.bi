@@ -3,13 +3,13 @@
 
 'Note: y+ = up, x+ = right, (0,0) = center
 type scaled_graphics_type
-	dim as single scale = 1 ' = 1 / pixel_size 'pixels / meter
+	dim as double scale = 1 ' = 1 / pixel_size 'pixels / meter
 	'dim as int2d offset' = (scrn_w \ 2, h \ 2) 'offset in pixels
 	dim as dbl2d offset
 	dim as integer w = -1, h = -1
 	dim as integer wc = -1, hc = -1 'width/height half, center x,y
 	declare sub setScreen(w as integer, h as integer)
-	declare sub setScaling(scale as single, offset as dbl2d)
+	declare sub setScaling(scale as double, offset as dbl2d)
 	declare sub clearScreen(c as ulong)
 	declare function pos2screen(p as dbl2d) as int2d
 	declare function screen2pos(p as int2d) as dbl2d 'reverse
@@ -30,7 +30,7 @@ sub scaled_graphics_type.setScreen(w as integer, h as integer)
 	width w \ 8, h \ 16 'bigger font
 end sub
 
-sub scaled_graphics_type.setScaling(scale as single, offset as dbl2d)
+sub scaled_graphics_type.setScaling(scale as double, offset as dbl2d)
 	this.scale = scale
 	this.offset = offset
 end sub
