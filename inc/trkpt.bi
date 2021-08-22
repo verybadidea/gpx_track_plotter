@@ -5,6 +5,7 @@
 #define MIN(a, b)  iif((a) < (b), (a), (b))
 #define MAX(a, b)  iif((a) > (b), (a), (b))
 #define AVG(a, b)  ((a + b) / 2)
+#define AVG3(a, b, c)  ((a + b + c) / 3)
 
 const as double PI = 4 * atn(1)
 const as string HT = !"\t" 'horizontal tab
@@ -57,12 +58,16 @@ function activityString(activity as integer) as string
 	return text
 end function
 
+type geo_pos
+	dim as double lon, lat 'longitude (E-W), latitude (N-S)
+	dim as double ele 'elevation
+end type
+
 'global position & time struct
 type trkpt_type
 	'DATA FROM FILE:
-	dim as double lon, lat 'longitude (E-W), latitude (N-S)
+	dim as geo_pos geoPos
 	dim as double dateTime 'UTC
-	dim as double ele 'elevation
 	'dim as double ext_dir, ext_g_spd, ext_h_acc, ext_v_acc
 	'CALCULATED DATA:
 	dim as double speed
@@ -73,29 +78,39 @@ end type
 const as double EARTHC = 4e7 'circumfence [m] 360° 40075e3'
 'dx = dLon * 4e7 * cos(avg(Lat1, Lat2) * PI / 180) / 360
 'dy = dLat * 4e7 / 360
-function deltaPos(pt1 as trkpt_type, pt2 as trkpt_type) as dbl3d
+function deltaPos(pos1 as geo_pos, pos2 as geo_pos) as dbl3d
 	dim as dbl3d dPos
-	dim as double dLon = pt1.lon - pt2.lon
-	dim as double dLat = pt1.lat - pt2.lat
-	dim as double avgLat = AVG(pt1.lat, pt2.lat)
+	dim as double dLon = pos1.lon - pos2.lon
+	dim as double dLat = pos1.lat - pos2.lat
+	dim as double avgLat = AVG(pos1.lat, pos2.lat)
 	dPos.x = dLon * cos(avgLat * PI / 180) * earthc / 360
 	dPos.y = dLat * earthc / 360
-	dPos.z = (pt1.ele - pt2.ele)
+	dPos.z = (pos1.ele - pos2.ele)
 	return dPos
 end function
 
-function distPos(pt1 as trkpt_type, pt2 as trkpt_type) as double
-	dim as dbl3d dPos = deltaPos(pt1, pt2)
+function distPos(pos1 as geo_pos, pos2 as geo_pos) as double
+	dim as dbl3d dPos = deltaPos(pos1, pos2)
 	return sqr(dPos.x * dPos.x + dPos.y * dPos.y + dPos.z * dPos.z)
 end function
 
-function moveGeoPt(ptRef as trkpt_type, dPos as dbl3d) as trkpt_type
-	dim as trkpt_type ptTemp = ptRef 'copy
-	ptTemp.ele -= dPos.z
-	ptTemp.lat -= 360 * (dPos.y / earthc)
-	dim as double avgLat = AVG(ptTemp.lat, ptRef.lat)
-	ptTemp.lon -= 360 * dPos.x / (earthc * cos(avgLat * PI / 180))
-	return ptTemp
+function flatDistPos(pos1 as geo_pos, pos2 as geo_pos) as double
+	dim as dbl3d dPos = deltaPos(pos1, pos2)
+	return sqr(dPos.x * dPos.x + dPos.y * dPos.y) 'ignore z / height
+end function
+
+function heightDiffPos(pos1 as geo_pos, pos2 as geo_pos) as double
+	dim as dbl3d dPos = deltaPos(pos1, pos2)
+	return abs(dPos.z)
+end function
+
+function moveGeoPt(refPos as geo_pos, dPos as dbl3d) as geo_pos
+	dim as geo_pos tempPos = refPos 'copy
+	tempPos.ele -= dPos.z
+	tempPos.lat -= 360 * (dPos.y / earthc)
+	dim as double avgLat = AVG(tempPos.lat, refPos.lat)
+	tempPos.lon -= 360 * dPos.x / (earthc * cos(avgLat * PI / 180))
+	return tempPos
 end function
 
 '-------------------------------------------------------------------------------
@@ -109,12 +124,10 @@ type trkpt_list
 	dim as string name_
 	dim as trkpt_type pt(any)
 	'calculated stats
-	dim as double totalDist 'm
+	dim as double totalDist, totalFlatDist, totalHeightDist 'm
 	dim as double totalTime 's
 	dim as double maxSpeed, avgSpeed 'm/s
-	dim as double minEle, maxEle 'm
-	dim as double minLat, maxLat 'Latitude
-	dim as double minLon, maxLon 'Longitude (BUG: At -180 to + 180 transition)
+	dim as geo_pos maxPos, minPos
 	'routines
 	declare function addPoint() as integer
 	declare function size() as integer
@@ -122,7 +135,7 @@ type trkpt_list
 	declare sub clear_()
 	declare function readGpxFile(fileName as string) as integer
 	declare sub calculate()
-	declare sub calculateCart(ptRef as trkpt_type)
+	declare sub calculateCart(refPos as geo_pos)
 	declare sub filter()
 	declare sub saveTrackTsv(fileName as string) 'should be a function!
 	declare sub printFirstLast()
@@ -144,9 +157,9 @@ end function
 function trkpt_list.check() as integer
 	dim as integer errorCount = 0
 	for i as integer = 0 to ubound(pt)
-		if pt(i).lat = 0 then errorCount += 1
-		if pt(i).lon = 0 then errorCount += 1
-		if pt(i).ele = 0 then errorCount += 1
+		if pt(i).geoPos.lat = 0 then errorCount += 1
+		if pt(i).geoPos.lon = 0 then errorCount += 1
+		if pt(i).geoPos.ele = 0 then errorCount += 1
 		if pt(i).dateTime = 0 then errorCount += 1
 	next
 	return errorCount
@@ -192,7 +205,7 @@ function trkpt_list.readGpxFile(fileName as string) as integer
 						pAttrName = xmlTextReaderConstName(pReader)
 						pAttrvalue = xmlTextReaderConstValue(pReader)
 						if *pAttrName = "lat" then
-							this.pt(iTrkpt).lat = cdbl(*pAttrvalue)
+							this.pt(iTrkpt).geoPos.lat = cdbl(*pAttrvalue)
 							'print "lat: " & *pAttrvalue
 						end if
 					end if
@@ -200,7 +213,7 @@ function trkpt_list.readGpxFile(fileName as string) as integer
 						pAttrName = xmlTextReaderConstName(pReader)
 						pAttrvalue = xmlTextReaderConstValue(pReader)
 						if *pAttrName = "lon" then
-							this.pt(iTrkpt).lon = cdbl(*pAttrvalue)
+							this.pt(iTrkpt).geoPos.lon = cdbl(*pAttrvalue)
 							'print "lon: " & *pAttrvalue
 						end if
 					end if
@@ -222,7 +235,7 @@ function trkpt_list.readGpxFile(fileName as string) as integer
 				pConstName = xmlTextReaderConstName(pReader)
 				pConstValue = xmlTextReaderConstValue(pReader)
 				if (ret = 1) then
-					this.pt(iTrkpt).ele = cdbl(*pConstValue)
+					this.pt(iTrkpt).geoPos.ele = cdbl(*pConstValue)
 					'print "ele: " & *pConstValue
 					'print
 					'getkey()
@@ -252,11 +265,20 @@ sub trkpt_list.calculate() 'derived data and statistics
 	totalTime = DiffDateTimeSec(pt(0).dateTime, pt(last).dateTime)
 	maxSpeed = 0
 	totalDist = 0
+	totalFlatDist = 0
+	totalHeightDist = 0
 	'compare sequential track points
 	pt(0).speed = 0
 	for i as integer = 1 to last
-		dist = distPos(pt(i - 1), pt(i))
+		dist = distPos(pt(i - 1).geoPos, pt(i).geoPos)
+		'
+		dim as double flatDist = flatDistPos(pt(i - 1).geoPos, pt(i).geoPos)
+		dim as double heightDiff = heightDiffPos(pt(i - 1).geoPos, pt(i).geoPos)
+		'if heightDiff > flatDist then print "heightDiffPos > flatDist", i, heightDiff, flatDist
+		'
 		totalDist += dist
+		totalFlatDist += flatDist
+		totalHeightDist += heightDiff
 		timeDiff = DiffDateTimeSec(pt(i - 1).dateTime, pt(i).dateTime)
 		if timeDiff = 0 then
 			pt(i).speed = 0
@@ -266,22 +288,24 @@ sub trkpt_list.calculate() 'derived data and statistics
 		end if
 	next
 	avgSpeed = totalDist / totalTime
-	minEle = pt(0).ele : maxEle = pt(0).ele
-	minLat = pt(0).lat : maxLat = pt(0).lat
-	minLon = pt(0).lon : maxLon = pt(0).lon
+	minPos = pt(0).geoPos
+	maxPos = pt(0).geoPos
+	'minEle = pt(0).ele : maxEle = pt(0).ele
+	'minLat = pt(0).lat : maxLat = pt(0).lat
+	'minLon = pt(0).lon : maxLon = pt(0).lon
 	for i as integer = 1 to last
-		minEle = min(minEle, pt(i).ele)
-		maxEle = max(maxEle, pt(i).ele)
-		minLon = min(minLon, pt(i).Lon)
-		maxLon = max(maxLon, pt(i).Lon)
-		minLat = min(minLat, pt(i).Lat)
-		maxLat = max(maxLat, pt(i).Lat)
+		minPos.Ele = min(minPos.Ele, pt(i).geoPos.ele)
+		maxPos.Ele = max(maxPos.Ele, pt(i).geoPos.ele)
+		minPos.Lon = min(minPos.Lon, pt(i).geoPos.Lon)
+		maxPos.Lon = max(maxPos.Lon, pt(i).geoPos.Lon)
+		minPos.Lat = min(minPos.Lat, pt(i).geoPos.Lat)
+		maxPos.Lat = max(maxPos.Lat, pt(i).geoPos.Lat)
 	next
 end sub
 
-sub trkpt_list.calculateCart(ptRef as trkpt_type)
+sub trkpt_list.calculateCart(refPos as geo_pos)
 	for i as integer = 0 to size() - 1
-		pt(i).cartPos = deltaPos(pt(i), ptRef)
+		pt(i).cartPos = deltaPos(pt(i).geoPos, refPos)
 	next
 end sub
 
@@ -290,12 +314,32 @@ end sub
 'calls calculate() and calculateCart() again
 sub trkpt_list.filter()
 	dim as integer last = size() - 1
+	'first smooth height N times
+	dim as integer nFilter = 10
+	redim as double newHeight(0 to last)
+	print "running height smoothing filter " & nFilter & " times..."
+	for n as integer = 1 to nFilter
+		for i as integer = 0 to last
+			if i = 0 then
+				newHeight(i) = AVG(pt(i).geoPos.ele, pt(i + 1).geoPos.ele)
+			elseif i = last then
+				newHeight(i) = AVG(pt(i).geoPos.ele, pt(i - 1).geoPos.ele)
+			else
+				newHeight(i) = AVG3(pt(i).geoPos.ele, pt(i - 1).geoPos.ele, pt(i + 1).geoPos.ele)
+			end if
+		next
+		'copy back into track data
+		for i as integer = 0 to last
+			pt(i).geoPos.ele = newHeight(i)
+		next
+	next
+	'now apply speed limiter
 	dim as double vMax = activityMaxSpeed(quessActivity(avgSpeed, totalDist))
 	for i as integer = last to 1 step -1
-		dim as double dist = distPos(pt(i), pt(i - 1))
+		dim as double dist = distPos(pt(i).geoPos, pt(i - 1).geoPos)
 		dim as double timeDiff = DiffDateTimeSec(pt(i - 1).dateTime, pt(i).dateTime)
 		if timeDiff > 60 then print "> 1 minute jump:" & timeDiff
-		dim as dbl3d dPos = deltaPos(pt(i), pt(i - 1))
+		dim as dbl3d dPos = deltaPos(pt(i).geoPos, pt(i - 1).geoPos)
 		dim as double speed = iif(timeDiff = 0, 0, dist / timeDiff)
 		'if pt(i).speed > (25 / 3.6) then
 		if speed > vMax then
@@ -303,15 +347,10 @@ sub trkpt_list.filter()
 			dim as double fraction = vMax / speed
 			print "adjusted point: " & i & " speed: " & speed * 3.6
 			dPos *= fraction
-			dim as trkpt_type newPt = moveGeoPt(pt(i), dPos)
-			pt(i - 1).lon = newPt.lon
-			pt(i - 1).lat = newPt.lat
-			pt(i - 1).ele = newPt.ele
+			dim as geo_pos newPos = moveGeoPt(pt(i).geoPos, dPos)
+			pt(i - 1).geoPos = newPos
 		end if
 	next
-	'~ for i as integer = 1 to last
-		'~ if pt(i - 1).dateTime > pt(i).dateTime then end
-	'~ next
 end sub
 
 sub trkpt_list.saveTrackTsv(fileName as string)
@@ -324,8 +363,8 @@ sub trkpt_list.saveTrackTsv(fileName as string)
 		for i as integer = 0 to this.size() - 1
 			with this.pt(i)
 				outStr = str(i) & HT & format(.dateTime, "yyyy-mm-dd - hh:mm:ss") & HT & _
-					format(.lon, "#.000000") & HT & format(.lat, "#.000000") & HT & _
-					format(.ele, "0.0") & HT & format(.speed, "#.000")
+					format(.geoPos.lon, "#.000000") & HT & format(.geoPos.lat, "#.000000") & HT & _
+					format(.geoPos.ele, "0.0") & HT & format(.speed, "#.000")
 				print #fileNum, outStr
 			end with
 		next
@@ -344,8 +383,8 @@ sub trkpt_list.printFirstLast()
 			if i >= 3 and i < size() - 3 then continue for
 			with pt(i)
 				print i, format(.dateTime, "yyyy-mm-dd - hh:mm:ss"), _
-					format(.lon, "#.000000"), format(.lat, "#.000000"), _
-					format(.ele, "0.0"), format(.speed, "#.000")
+					format(.geoPos.lon, "#.000000"), format(.geoPos.lat, "#.000000"), _
+					format(.geoPos.ele, "0.0"), format(.speed, "#.000")
 			end with
 		next
 	end if
@@ -362,10 +401,12 @@ end sub
 sub trkpt_list.printStats()
 	print !"\nTrack stats:"
 	print " totalDist [km]: " & format(totalDist / 1000, "0.000")
+	print " totalFlatDist [km]: " & format(totalFlatDist / 1000, "0.000")
+	print " totalHeightDist [km]: " & format(totalHeightDist / 1000, "0.000")
 	print " totalTime [s]: " & format(totalTime, "0.0")
 	print " avgSpeed [km/h]: " & format(avgSpeed * 3.6, "0.000") 
 	print " maxSpeed [km/h]: " & format(maxSpeed * 3.6, "0.000")
-	print " Longitude []: " & format(minLon, "0.000000") & " ... " & format(maxLon, "0.000000")
-	print " Latitude []: " & format(minLat, "0.000000") & " ... " & format(maxLat, "0.000000")
-	print " Elevation [m]: " & format(minEle, "0.0") & " ... " & format(maxEle, "0.0")
+	print " Longitude []: " & format(minPos.Lon, "0.000000") & " ... " & format(maxPos.Lon, "0.000000")
+	print " Latitude []: " & format(minPos.Lat, "0.000000") & " ... " & format(maxPos.Lat, "0.000000")
+	print " Elevation [m]: " & format(minPos.Ele, "0.0") & " ... " & format(maxPos.Ele, "0.0")
 end sub

@@ -73,13 +73,13 @@ allStats.create(track())
 allStats.print_()
 print "Number of files: " & str(numTracks)
 
-dim as trkpt_type ptRef
-ptRef.Lon = AVG(allStats.minLon, allStats.maxLon)
-ptRef.Lat = AVG(allStats.minLat, allStats.maxLat)
-ptRef.Ele = AVG(allStats.minEle, allStats.maxEle)
+dim as geo_pos refPos
+refPos.Lon = AVG(allStats.minPos.Lon, allStats.maxPos.Lon)
+refPos.Lat = AVG(allStats.minPos.Lat, allStats.maxPos.Lat)
+refPos.Ele = AVG(allStats.minPos.Ele, allStats.maxPos.Ele)
 
-dim as double dLon = (allStats.maxLon - allStats.minLon)
-dim as double dLat = (allStats.maxLat - allStats.minLat)
+dim as double dLon = (allStats.maxPos.Lon - allStats.minPos.Lon)
+dim as double dLat = (allStats.maxPos.Lat - allStats.minPos.Lat)
 print "dLon: "; dLon, "dLat: "; dLat
 
 dim as integer zoomLevelLon = int(log(360 / dLon) / log(2) + 0.25) + 2 '+2 is 4x zoom = ~SW/256
@@ -87,15 +87,15 @@ dim as integer zoomLevelLat = int(log(180 / dLat) / log(2) + 0.25) + 2 '0.25 is 
 dim as integer zoomLevel = min(zoomLevelLon, zoomLevelLat)
 print "zoomLevel: " & zoomLevel
 
-print ptRef.Lon, ptRef.Lat, ptRef.Ele
-dim as double pixelWidth = earthc * cos360(ptRef.Lat) / (2 ^ (zoomLevel + 8))
+print refPos.Lon, refPos.Lat, refPos.Ele
+dim as double pixelWidth = earthc * cos360(refPos.Lat) / (2 ^ (zoomLevel + 8))
 print "pixelWidth [m]: " & pixelWidth
 dim as double mapWidth = pixelWidth * SW
 print "mapWidth [km]: " & mapWidth / 1e3
 
 'loop all tracks, calculate cartesian coordinates for all points
 for i as integer = 0 to numTracks - 1
-	track(i).calculateCart(ptRef)
+	track(i).calculateCart(refPos)
 next
 
 print : print "Press a key to continue. <Escape> to quit."
@@ -110,7 +110,7 @@ width SW \ 8, SH \ 16
 
 print "Fetching image..."
 'styles: atlas, landscape, outdoors, neighbourhood
-dim as fb.image ptr pImg = getMapImage(ptRef.Lon, ptRef.Lat, zoomLevel, "atlas", SW, SH)
+dim as fb.image ptr pImg = getMapImage(refPos.Lon, refPos.Lat, zoomLevel, "atlas", SW, SH)
 if pImg <> 0 then
 	'put (0,0), pImg, pset
 else
@@ -122,20 +122,28 @@ end if
 dim as double maxSpeed = 40 / 3.6 'limit to 40 km/h for color
 dim as dbl2d p0, p1
 dim as ulong c
+dim as string key
 dim as single scale = SW / mapWidth '[1/m]
 sg.setScaling(scale, dbl2d(0, 0))
-while inkey <> chr(27)
+while key <> chr(27) 'escape
+	key = inkey()
 	'zoom / drag view by mouse
 	mouseEvent = handleMouse(mouse)
 	if (mouse.buttons <> -1) then
 		if (mouseEvent = MOUSE_LB_PRESSED) then mouseDrag = 1
 		if (mouseEvent = MOUSE_LB_RELEASED) then mouseDrag = 0
-		if (mouseEvent = MOUSE_WHEEl_UP) then sg.scale *= 2
-		if (mouseEvent = MOUSE_WHEEl_DOWN) then sg.scale /= 2
+		if (mouseEvent = MOUSE_WHEEl_UP) then sg.scale *= 2 : zoomLevel += 1
+		if (mouseEvent = MOUSE_WHEEl_DOWN) then sg.scale /= 2 : zoomLevel -= 1
 	end if
 	if (mouseDrag) then
 		sg.offset.x -= (mouse.posChange.x / sg.scale)
 		sg.offset.y += (mouse.posChange.y / sg.scale)
+	end if
+	if key = chr(32) then 'space
+		'read map from Thunderforrest at new zoomlevel and position
+		'...
+		'...
+		'...
 	end if
 	'find track point closest to mouse
 	dim as dbl2d mousePosMap = sg.screen2pos(mouse.pos)
@@ -187,15 +195,20 @@ while inkey <> chr(27)
 		case else : rulerLenStr += " m"
 	end select
 	'plot distance ruler
+	dim as ulong cRuler = rgba(127,0,0,255)
 	dim as integer x0 = 20
 	dim as integer x1 = 20 + rulerLen * sg.scale
-	draw string(20, sg.h - 40), rulerLenStr, rgba(127,0,0,255)
-	line(x0, sg.h - 20) - (x1, sg.h - 20), rgba(127,0,0,255)
-	line(x0, sg.h - 15) - (x0, sg.h - 25), rgba(127,0,0,255)
-	line(x1, sg.h - 15) - (x1, sg.h - 25), rgba(127,0,0,255)
+	draw string(20, sg.h - 40), rulerLenStr, cRuler
+	line(x0, sg.h - 20) - (x1, sg.h - 20), cRuler
+	line(x0, sg.h - 15) - (x0, sg.h - 25), cRuler
+	line(x1, sg.h - 15) - (x1, sg.h - 25), cRuler
 	'plot map certer marker
 	line(SW \ 2, 0)-(SW \ 2, SH-1), rgba(127,0,0,127),,&b1110000011100000
 	line(0, SH \ 2)-(SW-1, SH \ 2), rgba(127,0,0,127),,&b1110000011100000
+	'plot center of tracks indicator
+	sg.drawCircle(dbl2d(0, 0), 5, cRuler)
+	sg.drawCircle(dbl2d(0, 0), 2, cRuler)
+	'sg.drawLine(p0, p1, c)
 	screenunlock
 	sleep 1
 wend
@@ -203,11 +216,7 @@ wend
 ImageDestroy(pImg)
 
 'TODO:
-' data type for geoPos (lon, lat, ele)
-' move center with mouse
 ' key to read map at new zoom and position, limit max zoom
-' calculate total height difference
-' optional fiter on too large elevation change (not for skiing)
 ' max & avg speed from <extentions>
 ' save gpx file
 
